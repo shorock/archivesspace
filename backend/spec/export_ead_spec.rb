@@ -158,7 +158,7 @@ describe "EAD export mappings" do
         :relator => (ref[-1].to_i % 4 == 0 ? generate(:relator) : nil)
       }
     }
-    # let's makes sure there's one agent a creator without and terms.
+    # let's makes sure there's one agent a creator without any terms.
     agents.find { |a| a[:role] == "creator" }[:terms] = []
     agents.shuffle
 
@@ -655,13 +655,13 @@ describe "EAD export mappings" do
         end
       end
 
-      it "maps linked agents with role 'subject' or 'source' to {desc_path}/controlaccess/NODE" do
+      it "maps linked agents with any role to {desc_path}/controlaccess/NODE" do
         object.linked_agents.each do |link|
           link_role = link[:role] || link['role']
-          next unless %w(source subject).include?(link_role)
+          # next unless %w(source subject).include?(link_role)
           relator = link[:relator] || link['relator']
           ref = link[:ref] || link['ref']
-          role = relator ? relator : (link_role == 'source' ? 'fmo' : nil)
+          role = relator ? relator : (link_role == 'source' ? 'fmo' : link_role)
           agent = @agents[ref]
           sort_name = agent.names[0]['sort_name']
           rules = agent.names[0]['rules']
@@ -685,7 +685,7 @@ describe "EAD export mappings" do
 
           mt(rules, path, 'rules')
           mt(source, path, 'source')
-          mt(role, path, 'label')
+          mt(role, path, 'role')
           mt(content.strip, path)
         end
       end
