@@ -87,7 +87,8 @@ class NestedRecordResolver
         # All loaded separately.  No need to redo it.
         objs
       else
-        model.any_repo.eager(graph).filter(:id => objs.map(&:id)).all
+        loaded = model.any_repo.eager(graph).filter(:id => objs.map(&:id)).all
+        objs.map { |o| loaded.select { |l| l.id == o.id }.first }
       end
     end
   end
