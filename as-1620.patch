@@ -1,0 +1,30 @@
+diff --git a/app/exporters/models/ead.rb b/app/exporters/models/ead.rb
+index 19c41f7..409db61 100644
+--- a/app/exporters/models/ead.rb
++++ b/app/exporters/models/ead.rb
+@@ -33,7 +33,7 @@ class EADModel < ASpaceExport::ExportModel
+ 
+     def self.prefetch(tree_nodes, repo_id)
+       RequestContext.open(:repo_id => repo_id) do
+-        objs = ArchivalObject.sequel_to_jsonmodel(ArchivalObject.filter(:id => tree_nodes.map {|tree| tree['id']}).all)
++        objs = ArchivalObject.sequel_to_jsonmodel(ArchivalObject.filter(:id => tree_nodes.map {|tree| tree['id']}).order(:position).all)
+         URIResolver.resolve_references(objs, ['subjects', 'linked_agents', 'digital_object'])
+       end
+     end
+diff --git a/app/lib/nested_record_resolver.rb b/app/lib/nested_record_resolver.rb
+index 8904a3b..172343f 100644
+--- a/app/lib/nested_record_resolver.rb
++++ b/app/lib/nested_record_resolver.rb
+@@ -87,7 +87,11 @@ class NestedRecordResolver
+         # All loaded separately.  No need to redo it.
+         objs
+       else
+-        model.any_repo.eager(graph).filter(:id => objs.map(&:id)).all
++        loaded = model.any_repo.eager(graph).filter(:id => objs.map(&:id)).all
++
++        # return the objects in the same order in which we received them
++        # some callers care about the order!
++        loaded.sort_by { |loaded_obj| objs.index {|obj| obj.id == loaded_obj.id} }
+       end
+     end
+   end
